@@ -66,7 +66,7 @@ extension MovieSearchViewController : UISearchBarDelegate {
     }
 }
 
-extension MovieSearchViewController : UICollectionViewDelegate,UICollectionViewDataSource {
+extension MovieSearchViewController : UICollectionViewDelegate,UICollectionViewDataSource{
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int{
         return self.searchViewModel.numberOfRowsForModel(sectionNumber: section)
     }
