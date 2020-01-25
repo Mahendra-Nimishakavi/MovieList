@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="pTn-zZ-OYs">
-    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <device id="retina4_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
@@ -14,7 +14,7 @@
                     <tabBarItem key="tabBarItem" systemItem="search" id="SFr-Ii-Qoi"/>
                     <navigationItem key="navigationItem" id="zh3-lP-XVT"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="lVX-S2-vYI">
-                        <rect key="frame" x="0.0" y="44" width="414" height="44"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="barTintColor" systemColor="systemBlueColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <textAttributes key="titleTextAttributes">
@@ -35,11 +35,11 @@
             <objects>
                 <viewController id="Tf8-FX-CDZ" customClass="MovieSearchViewController" customModule="MovieList" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="tNk-aq-dEm">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <searchBar contentMode="redraw" translatesAutoresizingMaskIntoConstraints="NO" id="Z4h-5F-fZe">
-                                <rect key="frame" x="0.0" y="88" width="414" height="44"/>
+                                <rect key="frame" x="0.0" y="44" width="375" height="44"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="44" id="CjK-lF-1Bh"/>
                                 </constraints>
@@ -101,6 +101,7 @@
                     <navigationItem key="navigationItem" title="Movie Search" id="MOY-at-Kaf"/>
                     <connections>
                         <outlet property="collectionView" destination="Toe-XG-Ks7" id="J7L-S4-033"/>
+                        <segue destination="qEV-mc-XfK" kind="show" identifier="Movie" id="e4j-eX-zjW"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="TtJ-kB-Dn0" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -110,13 +111,19 @@
         <!--Move-->
         <scene sceneID="hpE-kd-kWS">
             <objects>
-                <viewController storyboardIdentifier="moviesearch" id="qEV-mc-XfK" customClass="MovieDetailsViewController" customModule="MovieList" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="moviesearch" id="qEV-mc-XfK" customClass="MovieDetailsViewController" customModule="MovieList" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="HsI-ud-qOI">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Li2-FS-655">
-                                <rect key="frame" x="167.5" y="419.5" width="79" height="57"/>
+                            <imageView userInteractionEnabled="NO" tag="99" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="G5s-SJ-c3U">
+                                <rect key="frame" x="0.0" y="44" width="375" height="281.5"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="G5s-SJ-c3U" secondAttribute="height" multiplier="4:3" id="zwx-j6-diP"/>
+                                </constraints>
+                            </imageView>
+                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Li2-FS-655">
+                                <rect key="frame" x="66" y="427" width="79" height="57"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="57" id="HcZ-76-n3z"/>
                                     <constraint firstAttribute="width" constant="79" id="QKa-uC-YXy"/>
@@ -129,12 +136,8 @@
                                     <action selector="onSaveMovieClickedWithSender:" destination="qEV-mc-XfK" eventType="touchUpInside" id="Enj-jp-lOl"/>
                                 </connections>
                             </button>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="G5s-SJ-c3U">
-                                <rect key="frame" x="87" y="190" width="240" height="128"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                            </imageView>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="aXe-bw-K5c">
-                                <rect key="frame" x="45" y="510" width="324" height="278"/>
+                                <rect key="frame" x="16" y="492" width="337" height="108"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" systemColor="systemBlueColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
@@ -145,8 +148,9 @@
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <constraints>
-                            <constraint firstItem="Li2-FS-655" firstAttribute="centerX" secondItem="HsI-ud-qOI" secondAttribute="centerX" id="BxQ-re-Vkv"/>
-                            <constraint firstItem="Li2-FS-655" firstAttribute="centerY" secondItem="HsI-ud-qOI" secondAttribute="centerY" id="Slk-13-yyr"/>
+                            <constraint firstItem="G5s-SJ-c3U" firstAttribute="centerX" secondItem="HsI-ud-qOI" secondAttribute="centerX" id="IC4-BR-Xg7"/>
+                            <constraint firstItem="G5s-SJ-c3U" firstAttribute="width" secondItem="HsI-ud-qOI" secondAttribute="width" id="Z3N-d9-sh6"/>
+                            <constraint firstItem="G5s-SJ-c3U" firstAttribute="top" secondItem="i4U-bA-rc7" secondAttribute="top" id="rfQ-ET-EzS"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="i4U-bA-rc7"/>
                     </view>
@@ -159,7 +163,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="XRd-IF-09Y" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3273.913043478261" y="-611.38392857142856"/>
+            <point key="canvasLocation" x="2528.985507246377" y="-611.38392857142856"/>
         </scene>
         <!--Item-->
         <scene sceneID="B3U-Uq-csT">
@@ -168,7 +172,7 @@
                     <tabBarItem key="tabBarItem" title="Item" systemItem="favorites" id="T6N-CO-avk"/>
                     <navigationItem key="navigationItem" id="Zpg-yx-dFY"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="1m8-Jn-V1R">
-                        <rect key="frame" x="0.0" y="44" width="414" height="44"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                         <color key="barTintColor" systemColor="systemBlueColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <textAttributes key="titleTextAttributes">
@@ -188,7 +192,7 @@
             <objects>
                 <viewController id="4iQ-MN-tZi" customClass="FavoritesViewController" customModule="MovieList" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="U2Y-Ld-LUc">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="zhz-dz-XAy">

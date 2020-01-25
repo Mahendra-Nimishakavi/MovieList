@@ -8,39 +8,38 @@
 
 import Foundation
 import UIKit
+
+enum ParsingError:String,Error {
+    case success
+    case JSONParseError = "The data received is not in the proper format"
+}
+
 class ITunesService: MovieServiceProtocol {
-    let router = NetworkRouter()
+    let router = NetworkRouter.sharedInstance
+    
     func searchMovies(searchString: String, completion: @escaping ([Movie]?, Error?) -> Void) {
+        
         if searchString.count == 0 {
             completion(nil,ServiceError.invalidSearchString)
         }
         
         
         router.request(from: iTunesAPI(movie: searchString), completion: {data,error in
-            
-            if error != nil {
-                completion(nil,error)
-                return
-            }
-            
-            guard let responseData = data else {
-                completion(nil,error)
-                return
-            }
-            
-            do {
-                let jsonData = try JSONSerialization.jsonObject(with: data!, options: .mutableContainers)
-                print(jsonData)
-                let apiResponse = try JSONDecoder().decode(MovieAPIResponse.self, from: responseData)
+        
+                guard let responseData = data else {
+                    completion(nil,error)
+                    return
+                }
                 
-
-                completion(apiResponse.movies,nil)
-            } catch{
-                print(error)
-            }
+                do {
+                    try JSONSerialization.jsonObject(with: data!, options: .mutableContainers)
+                    let apiResponse = try JSONDecoder().decode(MovieAPIResponse.self, from: responseData)
+                    
+                    completion(apiResponse.movies,nil)
+                } catch{
+                    print(error)
+                    completion(nil,ParsingError.JSONParseError)
+                }
         })
     }
-    
-    
-
 }

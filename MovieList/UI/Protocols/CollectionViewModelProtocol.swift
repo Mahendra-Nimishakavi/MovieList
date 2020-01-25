@@ -19,12 +19,10 @@ protocol CollectionViewModelProtocol {
     //method to give back the title of the section
     func sectionTitle(section:Int) -> String
     
-    //method to take some action when the cell is about to go visible
-    func willDisplayCell(section:Int,row:Int)
-    
-    //method to take some action when the cell is about to end display
-    func didEndDisplay(section:Int,row:Int)
-    
-    //method that gives back the image for the cell
-    func imageForCell(section:Int,row:Int,completion:@escaping (UIImage?)->Void)
+}
+
+protocol MovieCollectionViewModelProtocol : CollectionViewModelProtocol {
+    associatedtype Movie
+    //method to get the movie for the cell
+    func getMovieForSelectedCell(row:Int) -> Movie?
 }

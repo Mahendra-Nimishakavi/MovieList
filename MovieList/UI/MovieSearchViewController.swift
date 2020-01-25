@@ -8,35 +8,29 @@
 
 import UIKit
 import SwiftSpinner
-//import
+import SDWebImage
 
 class MovieSearchViewController: BaseViewController {
     @IBOutlet var collectionView : UICollectionView!
     var searchViewModel : MovieSearchViewModel!
+    private var selectedFrame : CGRect?
+    private var customInteractor : CustomInteractor?
+    private var selectedImage : UIImage?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         // Do any additional setup after loading the view.
-        //self.collectionView.em
+        self.navigationController?.delegate = self
     }
-    
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let destinationViewController = segue.destination as? MovieDetailsViewController
-        destinationViewController!.transitioningDelegate = self
+        //destinationViewController!.transitioningDelegate = self
         let index : [IndexPath]  = self.collectionView.indexPathsForSelectedItems!
         let row = index[0];
-        destinationViewController?.movieDetailsViewModel = MovieDetailsViewModel(movie: self.searchViewModel.getSelectedRowObject(row: row.row)!)
+        destinationViewController?.movieDetailsViewModel = MovieDetailsViewModel(movie: self.searchViewModel.getMovieForSelectedCell(row: row.row)!)
       
     }
 }
@@ -51,13 +45,26 @@ extension MovieSearchViewController : UISearchBarDelegate {
             return
         }
         
+        if !Reachability().checkReachable() {
+            self.displayAlert(title: "Network Error!!!", message: "No Internet Connection!! Please Connect and Try Again.")
+            return
+        }
+        
         SwiftSpinner.show("Hold Tight!!! Searching For Movies....")
-        self.searchViewModel.searchMovies(searchString: searchString, completion: {_,_ in
+        self.searchViewModel.searchMovies(searchString: searchString, completion: { completed,error in
+            
             SwiftSpinner.hide()
+            
+            guard completed
+                else {
+                    self.displayAlert(title: "Search Error", message: error?.localizedDescription ?? "Unknown Error")
+                    return
+                }
             
             DispatchQueue.main.async {
                 self.collectionView.reloadData()
             }
+            
             
         })
         
@@ -67,13 +74,11 @@ extension MovieSearchViewController : UISearchBarDelegate {
 }
 
 extension MovieSearchViewController : UICollectionViewDelegate,UICollectionViewDataSource{
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int{
-        return self.searchViewModel.numberOfRowsForModel(sectionNumber: section)
+        return self.searchViewModel.numberOfRows(for: section)
     }
     
-    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        self.searchViewModel.willDisplayCell(section: indexPath.section, row: indexPath.row)
-    }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SearchController", for: indexPath) as! ThumbnailCell
@@ -84,9 +89,6 @@ extension MovieSearchViewController : UICollectionViewDelegate,UICollectionViewD
                     return
             }
             DispatchQueue.main.async{
-                
-                //cell.thumbNail?.layer.masksToBounds = true
-                //cell.thumbNail?.layer.cornerRadius = 6
                 cell.contentView.layer.cornerRadius = 2.0
                 cell.contentView.layer.borderWidth = 1.0
                 cell.contentView.layer.borderColor = UIColor.clear.cgColor
@@ -97,34 +99,46 @@ extension MovieSearchViewController : UICollectionViewDelegate,UICollectionViewD
             
         }
         
-        searchViewModel.imageForCell(section: indexPath.section, row: indexPath.row, completion: completionHandler)
+        let urlForImage = searchViewModel.urlForImage(section: indexPath.section, row: indexPath.row)
+        cell.thumbNail?.sd_setImage(with: urlForImage, placeholderImage: UIImage(named: "image_error.png"), options: SDWebImageOptions.progressiveLoad, completed: {
+            (image, error, type, url) in
+            self.searchViewModel.saveImage(for: indexPath, image: image)
+        })
         
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let popup = UIStoryboard(name: "Main", bundle: nil)
-        let vc = popup.instantiateViewController(identifier: "moviesearch") as! MovieDetailsViewController
-        vc.transitioningDelegate = self
-        let index : [IndexPath]  = self.collectionView.indexPathsForSelectedItems!
-        let row = index[0];
-        vc.movieDetailsViewModel = MovieDetailsViewModel(movie: self.searchViewModel.getSelectedRowObject(row: row.row)!)
-        present(vc, animated: true, completion: nil)
+        
+        let theAttributes:UICollectionViewLayoutAttributes! = collectionView.layoutAttributesForItem(at: indexPath)
+        selectedFrame = collectionView.convert(theAttributes.frame, to: collectionView.superview)
+        let indexOfSelectedCell = collectionView.indexPathsForSelectedItems?.first
+        let cell = collectionView.cellForItem(at: indexPath) as? ThumbnailCell
+        self.selectedImage = cell?.thumbNail?.image
+        self.performSegue(withIdentifier: "Movie", sender: self)
+        
     }
 }
 
-extension MovieSearchViewController : UIViewControllerTransitioningDelegate {
-    func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return FlipPresentAnimationController(originFrame: self.view.frame)
+
+
+extension MovieSearchViewController : UINavigationControllerDelegate {
+    
+    func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
+        guard let ci = customInteractor else { return nil }
+        return ci.transitionInProgress ? customInteractor : nil
     }
     
-//    func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-//      guard let revealVC = dismissed as? MovieDetailsViewController else {
-//        return nil
-//      }
-//      return FlipDismissAnimationController(destinationFrame: cardView.frame, interactionController: revealVC.swipeInteractionController)
-//    }
-    
-    
+    func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        
+        guard let frame = self.selectedFrame else { return nil }
+        switch operation {
+        case .push:
+            self.customInteractor = CustomInteractor(attachTo: toVC)
+            return CustomAnimator(duration: TimeInterval(UINavigationController.hideShowBarDuration), isPresenting: true, originFrame: frame, image: self.selectedImage ?? UIImage(named:"image_error")!)
+        default:
+            return CustomAnimator(duration: TimeInterval(UINavigationController.hideShowBarDuration), isPresenting: false, originFrame: frame, image:self.selectedImage ?? UIImage(named:"image_error")!)
+        }
+    }
 }
 

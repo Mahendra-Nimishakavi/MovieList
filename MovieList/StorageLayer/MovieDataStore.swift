@@ -38,8 +38,6 @@ class MovieDataStore {
         
         return nil
     }
-    
-    
 
 }
 
@@ -68,6 +66,11 @@ extension MovieDataStore {
         try? imageData.write(to: fileName)
         //movie.setPosterFilePath(filePath: getRelativePath(id: movie.id()))
         return true
+    }
+    
+    func getMovieThumbNail(movie:Movie) -> UIImage? {
+        let fileName = getDocumentsDirectory().appendingPathComponent(getRelativePath(id: movie.id))
+        return UIImage(contentsOfFile: fileName.absoluteString)
     }
     
     private func getDocumentsDirectory()->URL {
