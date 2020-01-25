@@ -56,3 +56,32 @@ extension MovieDataStore {
         return movieRealm
     }
 }
+
+//extension to store the images/thumbnails to disk
+extension MovieDataStore {
+    func saveMovieThumbNail(movie:Movie,thumbNail:UIImage)->Bool{
+        guard let imageData = thumbNail.jpegData(compressionQuality: 1.0) else{
+            return false
+        }
+        let fileName = getDocumentsDirectory().appendingPathComponent(getRelativePath(id: movie.id))
+        print("Writing the image to disk at location : \(fileName)")
+        try? imageData.write(to: fileName)
+        //movie.setPosterFilePath(filePath: getRelativePath(id: movie.id()))
+        return true
+    }
+    
+    private func getDocumentsDirectory()->URL {
+        let paths = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        return paths
+    }
+    
+    func getMovieAbsoluteFileURL(movieFilePath : String)->URL{
+        //print(getDocumentsDirectory() .appendingPathComponent(movieFilePath))
+        return getDocumentsDirectory() .appendingPathComponent(movieFilePath)
+    }
+    
+    private func getRelativePath(id:String)->String {
+        let relativePath = id + ".jpeg"
+        return relativePath
+    }
+}

@@ -9,16 +9,44 @@
 import Foundation
 import Realm
 import RealmSwift
-class FavoritesViewModel {
-    
+class FavoritesViewModel  {
+    private var favoriteMovies : [Movie]?
     
     func getFavoriteMovies() -> [Movie]? {
-        var specimens = try! Realm().objects(MovieRealm.self)
+        let realmMovies = try! Realm().objects(MovieRealm.self)
         
-        for specimen in specimens {
-            print(specimen)
+        favoriteMovies = realmMovies.compactMap { realmMovie in
+            let movie: Movie = Movie(id: realmMovie.id, title: realmMovie.title, posterPath: realmMovie.posterPath, overView: realmMovie.posterPath)
+            return movie
+            
         }
         
-        return nil
+        return favoriteMovies
+    }
+}
+
+extension FavoritesViewModel : CollectionViewModelProtocol {
+    func numberOfSections() -> Int {
+        return 0 // we dont have different sections
+    }
+    
+    func numberOfRows(for section: Int) -> Int {
+        return self.favoriteMovies?.count ?? 0
+    }
+    
+    func sectionTitle(section: Int) -> String {
+        return "FavoriteMovies"
+    }
+    
+    func willDisplayCell(section: Int, row: Int) {
+        
+    }
+    
+    func didEndDisplay(section: Int, row: Int) {
+        
+    }
+    
+    func imageForCell(section: Int, row: Int, completion: @escaping (UIImage?) -> Void) {
+        
     }
 }

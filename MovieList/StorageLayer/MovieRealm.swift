@@ -10,7 +10,7 @@ import Foundation
 import RealmSwift
 
 class MovieRealm : Object {
-    @objc dynamic var id : Int = 0
+    @objc dynamic var id : String = ""
     @objc dynamic var posterPath: String = ""
     @objc dynamic var title: String = ""
     @objc dynamic var overView: String = ""
