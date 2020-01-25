@@ -11,14 +11,13 @@ import Foundation
 import CoreData
 import UIKit
 
+public typealias SearchCompletion = (_ completed: Bool,_ error: Error?)->()
+
 protocol MovieSearchViewModelView:AnyObject {
     func reloadView()
 }
-class MovieSearchViewModel : NSObject,ImageTaskDownloader {
-    private var movies : [Movie]?
-    private var imageTasks = [Int:ImageTask]()
-    private let session = URLSession(configuration: .default)
-    var imageCompletionHandler  = [Int:((UIImage?)->Void)]()
+class MovieSearchViewModel  {
+    internal var movies : [Movie]?
     weak var delegate : MovieSearchViewModelView?
     private var movieService : MovieServiceProtocol
     
@@ -26,43 +25,55 @@ class MovieSearchViewModel : NSObject,ImageTaskDownloader {
         self.movieService = movieService
     }
     
-    
-    func searchMovies (searchString : String,completion:@escaping ([Movie]?,Error?)->Void) {
+    func searchMovies (searchString : String,completion:@escaping SearchCompletion) {
         clearOldSearch()
-        
         
         func searchResultsCallback(movies:[Movie]?,error:Error?) {
             guard let movies = movies else{
-                completion(nil,error)
+                completion(false,error)
                 return
             }
             
             self.updateModel(movies: movies)
-            completion(movies,nil)
+            completion(true,nil)
         }
         movieService.searchMovies(searchString: searchString, completion: searchResultsCallback)
     }
     
     func clearOldSearch () {
-        self.imageTasks.removeAll()
-        self.imageCompletionHandler.removeAll()
         self.movies?.removeAll()
         self.delegate?.reloadView()
         
     }
     
-    //TO-Do make it powerful
+}
+
+//CollectionView Protocol
+extension MovieSearchViewModel : MovieCollectionViewModelProtocol {
+
+    func numberOfRows(for section: Int) -> Int {
+        switch section {
+        case 0:
+            guard let movies = self.movies else{
+                return 0
+            }
+            return movies.count
+        default:
+            return 0
+            
+        }
+    }
+    
     func numberOfSections()->Int{
         return 1;
     }
     
-    func sectionTitle(sectionNumber : Int) -> String{
+    func sectionTitle(section sectionNumber : Int) -> String{
         var result = ""
         switch sectionNumber {
         case 0:
             result =  "Movies"
-        case 1:
-            result =  "Actors"
+        
         default:
             result = ""
         }
@@ -70,22 +81,6 @@ class MovieSearchViewModel : NSObject,ImageTaskDownloader {
         return result
     }
     
-    func numberOfRowsForModel(sectionNumber : Int) -> Int {
-        var result = 1
-        
-        switch sectionNumber {
-        case 0:
-            guard let movies = self.movies else{
-                result = 0
-                return result
-            }
-            result = movies.count
-        default:
-            return 1
-            
-        }
-        return result
-    }
     
     func modelForCell (section:Int,row:Int) -> Movie? {
         
@@ -96,13 +91,21 @@ class MovieSearchViewModel : NSObject,ImageTaskDownloader {
         return movies[row]
     }
     
+    func urlForImage (section:Int,row:Int) -> URL? {
+        guard let movieObject = modelForCell(section: section, row: row),
+        let posterURL = URL(string: movieObject.posterPath)
+            else{return nil}
+        return posterURL
+        
+    }
     
     private func updateModel(movies:[Movie]){
         self.movies = movies
         print("count after \(self.movies?.count ?? 0)")
     }
     
-    func getSelectedRowObject(row:Int)->Movie? {
+    
+    func getMovieForSelectedCell(row: Int) -> Movie? {
         guard let movies = self.movies else {
             return nil
         }
@@ -110,58 +113,21 @@ class MovieSearchViewModel : NSObject,ImageTaskDownloader {
         return (movies[row])
     }
     
+}
     
-    func imageForCell(section:Int,row:Int,completion:@escaping (UIImage?)->Void) -> Void {
+//saving
+extension MovieSearchViewModel {
+    func saveImage(for indexPath:IndexPath,image:UIImage?) {
+        guard let image = image
+            else{return}
         
-        print(section,row)
-        guard let imageTask = self.imageTasks[row]
-            else{
-                guard let movieObject = modelForCell(section: section, row: row)
-                    else{
-                        completion(nil)
-                        return
-                }
-                
-                
-                guard let posterURL = URL(string: movieObject.posterPath)
-                    else{
-                        completion(nil)
-                        return
-                }
-                setupImageTask(position: row, url: posterURL)
-                imageCompletionHandler[row] = completion
-                return
-        }
+        guard let movieObject = modelForCell(section: indexPath.section, row: indexPath.row)
+            else{return}
         
-        completion(imageTask.image)
-        
-    }
-    
-    func willDisplayCell(section:Int,row:Int){
-        self.imageTasks[row]?.resume()
-    }
-    
-    func didEndDisplay(section:Int,row:Int) {
-        self.imageTasks[row]?.pause()
-    }
-    
-    private func setupImageTask(position:Int,url:URL){
-        let imageTask = ImageTask(position: position, url: url, session: self.session, delegate: self)
-        self.imageTasks[position] = imageTask
-        print("Setting up image download for image \(url) count of tasks \(self.imageTasks.count)")
-    }
-    
-    func imageDownloaded(position: Int,image: UIImage?,error:Error?) {
-        if error != nil {
-            print("Error occured while downloading Image  for position \(position)")
-            imageCompletionHandler[position]!(UIImage(named: "image_error"))
-            return
-        }
-        print("Image downloaded for position \(position)")
-        DispatchQueue.main.async {
-            self.imageCompletionHandler[position]!(image)
-        }
+        let isSaveSuccess = MovieDataStore.sharedInstance.saveMovieThumbNail(movie: movieObject, thumbNail: image)
+        print(isSaveSuccess)
         
     }
 }
+
 

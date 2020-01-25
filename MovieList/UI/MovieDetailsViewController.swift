@@ -9,7 +9,7 @@
 import UIKit
 import SwiftSpinner
 
-class MovieDetailsViewController: UIViewController {
+class MovieDetailsViewController: BaseViewController {
     var movieDetailsViewModel : MovieDetailsViewModel!
     @IBOutlet weak var imageView : UIImageView!
     @IBOutlet weak var movieName : UILabel!
@@ -36,19 +36,10 @@ class MovieDetailsViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
     func fillUI(){
         SwiftSpinner.show("Setting Up Movie Details .....")
-        //self.movieName.text = self.movieDetailsViewModel.getMovieTitle()
+       // self.movieName.text = self.movieDetailsViewModel.getMovieTitle()
+        self.imageView.image = UIImage(named: "image_error")
         updateImage()
         showMovieOverView()
     }
@@ -84,6 +75,8 @@ class MovieDetailsViewController: UIViewController {
             title = "Oops!!! Error"
             message = "Unable to add movie"
         }
+        
+        //self.displa
         
 //        let alertCOntroller = UIUtilities.createAlert(title: title, message: message)
 //        let cancelAction = UIAlertAction(title: "OK", style: UIAlertAction.Style.cancel, handler: nil)

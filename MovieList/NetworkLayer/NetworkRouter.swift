@@ -29,6 +29,12 @@ enum NetworkResponse:String,Error {
 
 class NetworkRouter {
     
+    static let sharedInstance = NetworkRouter()
+    
+    private init(){
+        
+    }
+    
     func request(from route: EndPoint, completion: @escaping NetworkRouterCompletion) {
         let urlString = self.getFullURL(from: route)
         let parameters = route.parameters ?? nil
@@ -51,6 +57,25 @@ class NetworkRouter {
             
             completion(value,nil)
             print(value)
+        }
+    }
+    
+    func downloadImage(imageURL:URL,completion:@escaping NetworkRouterCompletion){
+        
+        Alamofire.request(imageURL, method: .get, parameters: nil, encoding: URLEncoding.default, headers: nil).validate().responseData { response in
+            guard  response.result.isSuccess
+                else{
+                    completion(nil,response.result.error)
+                    return
+            }
+            guard let value = response.data
+            else{
+                completion(nil,response.result.error)
+                return
+            }
+            
+            completion(value,nil)
+            
         }
     }
 }

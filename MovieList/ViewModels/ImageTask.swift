@@ -36,42 +36,19 @@ class ImageTask {
     }
     
     func resume() {
-//        if !isDownloading && !isFinishedDownloading {
-//            isDownloading = true
-//
-//            if let resumeData = resumeData {
-//                task = session.downloadTask(withResumeData: resumeData, completionHandler: downloadTaskCompletionHandler)
-//            }
-//            else{
-//                task = session.downloadTask(with: self.url, completionHandler: downloadTaskCompletionHandler)
-//            }
-//
-//            task?.resume()
-//        }
-        
-        let searchRequest = URLRequest(url: self.url)
-        self.dataTask = self.session.dataTask(with: searchRequest) { (data, response, error) in
-            if let error = error {
-              DispatchQueue.main.async {
-                self.delegate.imageDownloaded(position: self.position, image: nil, error: error)
-              }
-              return
+        NetworkRouter.sharedInstance.downloadImage(imageURL: self.url,completion: {
+            data,error in
+            
+            guard let data = data
+                else{
+                    self.delegate.imageDownloaded(position: self.position, image: nil, error: error)
+                    return
             }
             
-            guard
-              let _ = response as? HTTPURLResponse,
-              let data = data
-              else {
-                return
-            }
-                
             guard let image = UIImage(data: data) else {return}
             self.delegate.imageDownloaded(position: self.position, image: image, error: nil)
-            
-                return
-            }
+        })
         
-        self.dataTask!.resume()
     }
     
     
@@ -101,6 +78,10 @@ class ImageTask {
         }
         self.isFinishedDownloading = true;
         
+    }
+    
+    deinit {
+        print("image task deinited")
     }
     
 }

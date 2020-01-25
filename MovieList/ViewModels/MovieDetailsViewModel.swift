@@ -17,20 +17,22 @@ class MovieDetailsViewModel {
     
     func getPosterImage(completion : @escaping (UIImage?)->Void) {
         
-        guard let imageData = try? Data(contentsOf: (URL(string: self.movie.posterPath) ?? nil)!)
-            else {
-                completion(nil)
-                return
-            }
-
-        if let image = UIImage(data: imageData) {
-          completion(image)
-        }
-        else{
-            completion(nil)
-        }
-        
+        let image = MovieDataStore.sharedInstance.getMovieThumbNail(movie: self.movie)
+//        guard let imageData = try? Data(contentsOf: (URL(string: self.movie.posterPath) ?? nil)!)
+//            else {
+//                completion(nil)
+//                return
+//            }
+//
+//        if let image = UIImage(data: imageData) {
+//          completion(image)
+//        }
+//        else{
+//            completion(nil)
+//        }
+        completion(image)
         return
+        
     }
     
     private func downloadPoster(completion:@escaping (UIImage?)->Void){

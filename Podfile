@@ -9,6 +9,7 @@ target 'MovieList' do
  	pod “SwiftSpinner”
         pod "Alamofire"
 	pod 'RealmSwift'
+	pod 'SDWebImage'
 
   target 'MovieListTests' do
     inherit! :search_paths
