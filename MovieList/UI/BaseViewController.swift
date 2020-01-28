@@ -8,24 +8,18 @@
 
 import UIKit
 
+//Base ViewController that loads pattern
 class BaseViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        if let patternImage = UIImage(named: "Pattern") {
+          view.backgroundColor = UIColor(patternImage: patternImage)
+        }
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
-    }
-    */
     
      func displayAlert(title:String,message:String){
         let alertController = UIAlertController(title: title, message: message, preferredStyle:.alert)

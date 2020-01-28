@@ -12,32 +12,40 @@ import UIKit
 enum ParsingError:String,Error {
     case success
     case JSONParseError = "The data received is not in the proper format"
+    case networkError = "A Network Error Occured"
 }
 
 class ITunesService: MovieServiceProtocol {
-    let router = NetworkRouter.sharedInstance
     
+    let router : Router
+    
+    init(router:Router){
+        self.router = router
+    }
+    
+    //method to search movies
     func searchMovies(searchString: String, completion: @escaping ([Movie]?, Error?) -> Void) {
         
         if searchString.count == 0 {
             completion(nil,ServiceError.invalidSearchString)
         }
         
-        
-        router.request(from: iTunesAPI(movie: searchString), completion: {data,error in
+        self.router.request(from: iTunesAPI(movie: searchString), completion: {data,error in
         
                 guard let responseData = data else {
-                    completion(nil,error)
+                    print("Network router failed with \(error?.localizedDescription ?? "Unknown error")")
+                    completion(nil,ParsingError.networkError)
                     return
                 }
                 
                 do {
-                    try JSONSerialization.jsonObject(with: data!, options: .mutableContainers)
+                    let data = try JSONSerialization.jsonObject(with: data!, options: .mutableContainers)
+                    print("received data \(data)")
                     let apiResponse = try JSONDecoder().decode(MovieAPIResponse.self, from: responseData)
                     
                     completion(apiResponse.movies,nil)
                 } catch{
-                    print(error)
+                    print("Parsing error \(error.localizedDescription)")
                     completion(nil,ParsingError.JSONParseError)
                 }
         })

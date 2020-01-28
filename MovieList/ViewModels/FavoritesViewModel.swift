@@ -9,23 +9,29 @@
 import Foundation
 import Realm
 import RealmSwift
+
 class FavoritesViewModel  {
     private var favoriteMovies : [Movie]?
     
-    func getFavoriteMovies() -> [Movie]? {
-        let realmMovies = try! Realm().objects(MovieRealm.self)
-        
-        favoriteMovies = realmMovies.compactMap { realmMovie in
-            let movie: Movie = Movie(id: realmMovie.id, title: realmMovie.title, posterPath: realmMovie.posterPath, overView: realmMovie.posterPath)
-            return movie
-            
+    let dataStore: MovieDataStorageProtocol
+    
+    init(movieDataStore:MovieDataStorageProtocol){
+        dataStore = movieDataStore
+    }
+    
+    func loadFavoriteMovies() {
+        do{
+            self.favoriteMovies =  try self.dataStore.fetchFavoriteMovies()
+        }catch{
+            print("No favorites found with error \(error)")
         }
         
-        return favoriteMovies
     }
 }
 
-extension FavoritesViewModel : CollectionViewModelProtocol {
+extension FavoritesViewModel : MovieCollectionViewModelProtocol {
+    
+    
     func numberOfSections() -> Int {
         return 0 // we dont have different sections
     }
@@ -38,15 +44,21 @@ extension FavoritesViewModel : CollectionViewModelProtocol {
         return "FavoriteMovies"
     }
     
-    func willDisplayCell(section: Int, row: Int) {
+    
+    func getMovieForSelectedCell(indexPath : IndexPath) -> Movie? {
+        guard let movies = self.favoriteMovies else {
+            return nil
+        }
         
+        return (movies[indexPath.row])
     }
     
-    func didEndDisplay(section: Int, row: Int) {
+    func getThumNailImage(indexPath : IndexPath)-> UIImage {
         
-    }
-    
-    func imageForCell(section: Int, row: Int, completion: @escaping (UIImage?) -> Void) {
+        if let thumbNailImage = self.dataStore.getMovieThumbNail(movie: self.favoriteMovies![indexPath.row]){
+            return thumbNailImage
+        }
         
+        return UIImage(named: "image_error")!
     }
 }

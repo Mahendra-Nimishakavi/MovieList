@@ -8,17 +8,31 @@
 
 import UIKit
 
-class FavoritesViewController: UIViewController {
+class FavoritesViewController: BaseViewController {
     var favoritesViewModel : FavoritesViewModel!
     @IBOutlet var favoritesGrid : UICollectionView!
-    
+    private var indexOfSelectedCell:IndexPath?
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
-        self.favoritesViewModel.getFavoriteMovies()
+        
+        self.favoritesGrid?.backgroundColor = .clear
+        self.favoritesGrid?.contentInset = UIEdgeInsets(top: 23, left: 16, bottom: 10, right: 16)
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.favoritesViewModel.loadFavoriteMovies()
+        self.favoritesGrid.reloadData()
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+            let destinationViewController = segue.destination as? MovieDetailsViewController
+            destinationViewController?.movieDetailsViewModel = MovieDetailsViewModel(movie: self.favoritesViewModel.getMovieForSelectedCell(indexPath:indexOfSelectedCell!)!,dataStore: MovieDataStore())
+          
+        }
 
 }
 
@@ -28,39 +42,28 @@ extension FavoritesViewController : UICollectionViewDataSource,UICollectionViewD
         return self.favoritesViewModel.numberOfRows(for: section)
     }
     
-    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        self.favoritesViewModel.willDisplayCell(section: indexPath.section, row: indexPath.row)
-    }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "SearchController", for: indexPath) as! ThumbnailCell
         
-        func completionHandler(image:UIImage?){
-            guard let image = image
-                else{
-                    return
-            }
-            DispatchQueue.main.async{
-                
-                //cell.thumbNail?.layer.masksToBounds = true
-                //cell.thumbNail?.layer.cornerRadius = 6
-                cell.contentView.layer.cornerRadius = 2.0
-                cell.contentView.layer.borderWidth = 1.0
-                cell.contentView.layer.borderColor = UIColor.clear.cgColor
-                cell.contentView.layer.masksToBounds = true
-                print("width \(image.size.width) and height is  \(image.size.height)")
-                cell.thumbNail?.image = image//self.resizeImage(image: image)
-            }
-            
-        }
+        cell.thumbNail?.image = favoritesViewModel.getThumNailImage(indexPath: indexPath)
         
-        favoritesViewModel.imageForCell(section: indexPath.section, row: indexPath.row, completion: completionHandler)
-        
+        configureCell(cell)
         return cell
     }
     
+    private func configureCell(_ cell:UICollectionViewCell) {
+        cell.contentView.layer.cornerRadius = 2.0
+        cell.contentView.layer.borderWidth = 1.0
+        cell.contentView.layer.masksToBounds = true
+        cell.layer.borderColor = UIColor(white: 0.8, alpha: 1).cgColor
+        cell.layer.borderWidth = 1.0
+        cell.layer.cornerRadius = 4
+    }
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        
+        self.indexOfSelectedCell = collectionView.indexPathsForSelectedItems?.first
+        self.performSegue(withIdentifier: "Favorites", sender: self)
     }
     
 }

@@ -20,15 +20,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let _ = (scene as? UIWindowScene) else { return }
         
         let navigationController = self.window?.rootViewController as? UITabBarController
+        
         if let vc = navigationController?.viewControllers {
             let navController = vc[0] as? UINavigationController
             let controller = navController?.topViewController as? MovieSearchViewController
-            controller?.searchViewModel = MovieSearchViewModel(movieService: ITunesService())
+            
+            let iTunesService = ITunesService(router: NetworkRouter())
+            let dataStore = MovieDataStore()
+            controller?.searchViewModel = MovieSearchViewModel(movieService: iTunesService, dataStore: dataStore)
             
             
             let favoritesNavigationVC = vc[1] as? UINavigationController
             let favortiesVC = favoritesNavigationVC?.topViewController as? FavoritesViewController
-            favortiesVC?.favoritesViewModel = FavoritesViewModel()
+            let movieDataStore = MovieDataStore()
+            favortiesVC?.favoritesViewModel = FavoritesViewModel(movieDataStore: movieDataStore)
         }
         
     }

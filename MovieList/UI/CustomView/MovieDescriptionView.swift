@@ -9,9 +9,11 @@
 import Foundation
 import UIKit
 
-@IBDesignable class CardView: UIView {
-    var cornnerRadius : CGFloat = 2
-    var shadowOfSetWidth : CGFloat = 0
+
+//Custom View that displays Text given
+@IBDesignable class MovieDescriptionView: UITextView {
+    var cornnerRadius : CGFloat = 20
+    var shadowOfSetWidth : CGFloat = 10
     var shadowOfSetHeight : CGFloat = 5
     
     var shadowColour : UIColor = UIColor.green

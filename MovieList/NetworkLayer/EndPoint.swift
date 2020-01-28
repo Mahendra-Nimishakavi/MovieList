@@ -6,6 +6,7 @@
 //  Copyright © 2020 Tacit. All rights reserved.
 //
 
+//Represents an endpoint protocol
 import Foundation
 public enum HTTPMethod : String {
     case GET = "GET"

@@ -12,11 +12,6 @@ import Alamofire
 
 public typealias NetworkRouterCompletion = (_ data: Data?,_ error: Error?)->()
 
-enum Result<String>{
-    case success
-    case failure(String)
-}
-
 enum NetworkResponse:String,Error {
     case success
     case authenticationError = "You need to be authenticated first."
@@ -27,13 +22,12 @@ enum NetworkResponse:String,Error {
     case unableToDecode = "We could not decode the response."
 }
 
-class NetworkRouter {
-    
-    static let sharedInstance = NetworkRouter()
-    
-    private init(){
-        
-    }
+
+protocol Router {
+    func request(from route: EndPoint, completion: @escaping NetworkRouterCompletion)
+}
+
+class NetworkRouter : Router {
     
     func request(from route: EndPoint, completion: @escaping NetworkRouterCompletion) {
         let urlString = self.getFullURL(from: route)
@@ -45,6 +39,7 @@ class NetworkRouter {
             
             guard response.result.isSuccess
                 else{
+                    print("NetworkRouter:request: Error occured in network request \(String(describing: response.result.error))")
                     completion(nil,response.result.error)
                     return
                 }
@@ -56,28 +51,9 @@ class NetworkRouter {
             }
             
             completion(value,nil)
-            print(value)
         }
     }
     
-    func downloadImage(imageURL:URL,completion:@escaping NetworkRouterCompletion){
-        
-        Alamofire.request(imageURL, method: .get, parameters: nil, encoding: URLEncoding.default, headers: nil).validate().responseData { response in
-            guard  response.result.isSuccess
-                else{
-                    completion(nil,response.result.error)
-                    return
-            }
-            guard let value = response.data
-            else{
-                completion(nil,response.result.error)
-                return
-            }
-            
-            completion(value,nil)
-            
-        }
-    }
 }
 
 
@@ -91,7 +67,6 @@ extension NetworkRouter {
         switch endPoint.httpMethod {
             case .POST:
                 return Alamofire.HTTPMethod.post
-                
             case .GET:
                 return Alamofire.HTTPMethod.get
             case .PUT :
@@ -105,14 +80,3 @@ extension NetworkRouter {
 
 }
 
-extension NetworkRouter {
-    fileprivate func handleNetworkResponse(_ response: HTTPURLResponse) -> Result<String>{
-        switch response.statusCode {
-        case 200...299: return .success
-        case 401...500: return .failure(NetworkResponse.authenticationError.rawValue)
-        case 501...599: return .failure(NetworkResponse.badRequest.rawValue)
-        case 600: return .failure(NetworkResponse.outdated.rawValue)
-        default: return .failure(NetworkResponse.failed.rawValue)
-        }
-    }
-}

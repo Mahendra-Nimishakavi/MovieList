@@ -8,6 +8,7 @@
 
 import Foundation
 
+//builds the actual request
 public struct iTunesAPI : EndPoint {
     var movieSearchString : String!
     init(movie:String){

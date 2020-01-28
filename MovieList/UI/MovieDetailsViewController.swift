@@ -15,15 +15,16 @@ class MovieDetailsViewController: BaseViewController {
     @IBOutlet weak var movieName : UILabel!
     @IBOutlet weak var saveMovieButton : UIButton!
     @IBOutlet weak var movieOverView : UITextView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
         // Do any additional setup after loading the view.
         fillUI()
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        if self.movieDetailsViewModel.canShowSaveMovie() {
+        
+        if self.movieDetailsViewModel.canShowSaveMovieButton() {
             self.saveMovieButton.isHidden = false
         }
         else {
@@ -38,15 +39,11 @@ class MovieDetailsViewController: BaseViewController {
     
     func fillUI(){
         SwiftSpinner.show("Setting Up Movie Details .....")
-       // self.movieName.text = self.movieDetailsViewModel.getMovieTitle()
+        self.title = self.movieDetailsViewModel.getMovieTitle() ?? "Movie"
         self.imageView.image = UIImage(named: "image_error")
         updateImage()
-        showMovieOverView()
     }
     
-    func showMovieOverView() {
-        self.movieOverView.text = self.movieDetailsViewModel.getMovieOverView()
-    }
     
     func updateImage(){
         
@@ -66,8 +63,9 @@ class MovieDetailsViewController: BaseViewController {
     @IBAction func onSaveMovieClicked(sender:UIButton){
     
         var title : String,message : String
+        
         if(self.movieDetailsViewModel.saveMovie()){
-            print("saving movie succeeded")
+            print("onSaveMovieClicked: saving movie succeeded")
             title = "Success"
             message = "Successfully added Movie to WatchList"
         }
@@ -76,12 +74,24 @@ class MovieDetailsViewController: BaseViewController {
             message = "Unable to add movie"
         }
         
-        //self.displa
-        
-//        let alertCOntroller = UIUtilities.createAlert(title: title, message: message)
-//        let cancelAction = UIAlertAction(title: "OK", style: UIAlertAction.Style.cancel, handler: nil)
-//        alertCOntroller.addAction(cancelAction)
-//        self.present(alertCOntroller, animated: true, completion: nil)
+        self.displayAlert(title: title, message: message)
+    }
+    
+    @IBAction func onShowMovieDescriptionClicked(sender:UIButton) {
+        self.movieOverView.isHidden = false
+        self.movieOverView.text = self.movieDetailsViewModel.getMovieOverView()
+        self.view.backgroundColor = UIColor.white.withAlphaComponent(0.5)
+        self.imageView.alpha = 0.3
+        self.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(didTapOutside)))
+    }
+    
+    @objc func didTapOutside() {
+        self.movieOverView.isHidden = true
+        self.view.gestureRecognizers?.forEach(self.view.removeGestureRecognizer)
+        if let patternImage = UIImage(named: "Pattern") {
+          view.backgroundColor = UIColor(patternImage: patternImage)
+        }
+        self.imageView.alpha = 1.0
     }
 
 }

@@ -11,30 +11,46 @@ import Foundation
 import CoreData
 import UIKit
 
-public typealias SearchCompletion = (_ completed: Bool,_ error: Error?)->()
+public typealias SearchCompletion = (_ completed: Bool,_ error: MovieSearchError?)->()
 
-protocol MovieSearchViewModelView:AnyObject {
+protocol MovieSearchViewModelRefreshProtocol:AnyObject {
     func reloadView()
 }
+
+public enum MovieSearchError : String,Error {
+    case invalidSearchString = "The Search String given is invalid"
+    case searchStringLimit = "Lengthy Search Strings are not supported"
+    case searchStringSpecialCharacters = "Search String Contains Special Characters"
+    case noMoviesFound = "No Movies Found"
+}
+
 class MovieSearchViewModel  {
     internal var movies : [Movie]?
-    weak var delegate : MovieSearchViewModelView?
+    weak var delegate : MovieSearchViewModelRefreshProtocol?
     private var movieService : MovieServiceProtocol
     
-    init(movieService:MovieServiceProtocol) {
+    let movieDataStore:MovieDataStorageProtocol
+    
+    init(movieService:MovieServiceProtocol,dataStore:MovieDataStorageProtocol) {
         self.movieService = movieService
+        self.movieDataStore = dataStore
     }
     
-    func searchMovies (searchString : String,completion:@escaping SearchCompletion) {
+    func searchMovies (_ searchString : String,completion:@escaping SearchCompletion) throws {
+        
+        try self.validateSearchString(searchString)
+        
         clearOldSearch()
         
         func searchResultsCallback(movies:[Movie]?,error:Error?) {
-            guard let movies = movies else{
-                completion(false,error)
+            guard let movies = movies,
+                movies.count != 0
+            else{
+                completion(false,MovieSearchError.noMoviesFound)
                 return
             }
             
-            self.updateModel(movies: movies)
+            self.movies = movies
             completion(true,nil)
         }
         movieService.searchMovies(searchString: searchString, completion: searchResultsCallback)
@@ -44,6 +60,21 @@ class MovieSearchViewModel  {
         self.movies?.removeAll()
         self.delegate?.reloadView()
         
+    }
+    
+    private func validateSearchString(_ searchString:String) throws  {
+        
+        if searchString.count == 0 {
+            throw MovieSearchError.invalidSearchString
+        }
+        
+        if searchString.count > 30 {
+            throw MovieSearchError.searchStringLimit
+        }
+        
+        if searchString.range(of: ".*[^A-Za-z0-9 ].*", options: .regularExpression) != nil  {
+            throw MovieSearchError.searchStringSpecialCharacters
+        }
     }
     
 }
@@ -84,11 +115,53 @@ extension MovieSearchViewModel : MovieCollectionViewModelProtocol {
     
     func modelForCell (section:Int,row:Int) -> Movie? {
         
-        guard let movies = self.movies else {
+        guard let movies = self.movies,
+            row < movies.count
+        else {
             return nil
         }
         
         return movies[row]
+    }
+    
+    
+    func getMovieForSelectedCell(indexPath: IndexPath) -> Movie? {
+        guard let movies = self.movies else {
+            return nil
+        }
+        
+        return (movies[indexPath.row])
+    }
+    
+    
+    func getHeightForImage(indexPath:IndexPath) -> CGFloat {
+        
+        if self.movies == nil {
+            fatalError()
+        }
+        
+        guard let movie = modelForCell(section: indexPath.section, row: indexPath.row)
+            else{
+                return 200.0
+        }
+        
+        return movie.thumbNail?.size.height ?? 200.0
+    }
+}
+    
+//saving image
+extension MovieSearchViewModel {
+    func saveImage(for indexPath:IndexPath,image:UIImage?) {
+        guard let image = image
+            else{return}
+        
+        guard var movieObject = modelForCell(section: indexPath.section, row: indexPath.row)
+            else{return}
+        movieObject.thumbNail = image
+        
+        let isSaveSuccess = self.movieDataStore.saveMovieThumbNail(movie: movieObject, thumbNail: image)
+        print("Movie saving \(isSaveSuccess)")
+        
     }
     
     func urlForImage (section:Int,row:Int) -> URL? {
@@ -99,35 +172,6 @@ extension MovieSearchViewModel : MovieCollectionViewModelProtocol {
         
     }
     
-    private func updateModel(movies:[Movie]){
-        self.movies = movies
-        print("count after \(self.movies?.count ?? 0)")
-    }
-    
-    
-    func getMovieForSelectedCell(row: Int) -> Movie? {
-        guard let movies = self.movies else {
-            return nil
-        }
-        
-        return (movies[row])
-    }
-    
-}
-    
-//saving
-extension MovieSearchViewModel {
-    func saveImage(for indexPath:IndexPath,image:UIImage?) {
-        guard let image = image
-            else{return}
-        
-        guard let movieObject = modelForCell(section: indexPath.section, row: indexPath.row)
-            else{return}
-        
-        let isSaveSuccess = MovieDataStore.sharedInstance.saveMovieThumbNail(movie: movieObject, thumbNail: image)
-        print(isSaveSuccess)
-        
-    }
 }
 
 

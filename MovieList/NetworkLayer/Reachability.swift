@@ -9,6 +9,8 @@
 import Foundation
 import SystemConfiguration
 
+//Class that checks for connectivity
+
 class Reachability {
     private let reachability = SCNetworkReachabilityCreateWithName(nil, "www.google.com")
     

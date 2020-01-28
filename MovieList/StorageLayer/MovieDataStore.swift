@@ -8,35 +8,59 @@
 
 import Foundation
 import RealmSwift
-class MovieDataStore {
-    //Singleton Instance
-    static let sharedInstance = MovieDataStore()
+
+enum DataStoreError : String,Error{
+    case saveFailed = "Database Error!!! Saving Data Failed"
+    case fetchFailed = "Database Error!!! Fetching Data Failed"
     
-    private init(){
-        
-    }
+}
+
+
+class MovieDataStore : MovieDataStorageProtocol {
     
     func addMovieToFavorites (movie:Movie) throws -> Bool {
         let realmMovie = self.convertMovieToRealmObject(movie: movie)
         let realm = try! Realm()
         
-        //TODO : Error handling
         do{
             try realm.write {
-                realm.add(realmMovie)
+                realm.add(realmMovie, update: .modified)
             }
         } catch let error as NSError {
-            print(error)
+            print("MovieDataStore: addMovieToFavorites: \(error)")
+            throw DataStoreError.saveFailed
         }
         
         return true
     }
     
     
-    //API to fetch the favorite movies that were saved 
+    //API to fetch the favorite movies that were saved
+    
     func fetchFavoriteMovies() throws -> [Movie]? {
+        do{
+            let realmMovies = try Realm().objects(MovieRealm.self)
+            
+            let favoriteMovies:[Movie] = realmMovies.compactMap { realmMovie in
+                let movie: Movie = Movie(id: realmMovie.id, title: realmMovie.title, posterPath: realmMovie.posterPath, overView: realmMovie.overView)
+                return movie
+            }
+            
+            return favoriteMovies
+        }catch {
+            print("MovieDataStore: fetchFavoriteMovies: \(error)")
+            throw DataStoreError.fetchFailed
+        }
+    }
+    
+    //API to check if movie already exists
+    func isMovieInFavorites(movie:Movie) -> Bool {
         
-        return nil
+        guard (try! Realm().object(ofType: MovieRealm.self, forPrimaryKey: movie.id)) != nil
+            else{return false}
+
+        return true
+        
     }
 
 }
@@ -64,13 +88,12 @@ extension MovieDataStore {
         let fileName = getDocumentsDirectory().appendingPathComponent(getRelativePath(id: movie.id))
         print("Writing the image to disk at location : \(fileName)")
         try? imageData.write(to: fileName)
-        //movie.setPosterFilePath(filePath: getRelativePath(id: movie.id()))
         return true
     }
     
     func getMovieThumbNail(movie:Movie) -> UIImage? {
         let fileName = getDocumentsDirectory().appendingPathComponent(getRelativePath(id: movie.id))
-        return UIImage(contentsOfFile: fileName.absoluteString)
+        return UIImage(contentsOfFile: fileName.path)
     }
     
     private func getDocumentsDirectory()->URL {

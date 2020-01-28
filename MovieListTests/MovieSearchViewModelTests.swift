@@ -18,7 +18,7 @@ class MovieSearchViewModelTests: XCTestCase {
     
     override func setUp() {
         // Put setup code here. This method is called before the invocation of each test method in the class.
-        self.movieSearchViewModel = MovieSearchViewModel(movieService: MockMovieService())
+        self.movieSearchViewModel = MovieSearchViewModel(movieService: MockMovieService(),dataStore: MovieDataStore())
 
     }
 
@@ -34,24 +34,26 @@ extension MovieSearchViewModelTests {
     func testMovieSearch() {
         
         let expectation = XCTestExpectation(description: "Movie Search Completion")
-        self.movieSearchViewModel.searchMovies(searchString: validSearchString, completion: {
+        XCTAssertNoThrow(try self.movieSearchViewModel.searchMovies(validSearchString, completion: {
             completed,error in
             
             XCTAssertTrue(completed,"Expected a succesful movie search but got error \(String(describing: error))")
             expectation.fulfill()
-        })
+        }), "Did not expect an exception but got one")
+        
         self.wait(for: [expectation], timeout: 1.0)
     }
     
     func testInvalidSearch() {
         let expectation = XCTestExpectation(description: "Movie Search Completion")
-        self.movieSearchViewModel.searchMovies(searchString: invalidSearchString, completion: {
+        XCTAssertNoThrow(try self.movieSearchViewModel.searchMovies(invalidSearchString, completion: {
             completed,error in
             
             XCTAssertFalse(completed,"Expected error but got results")
             //XCTAssertEqual(error == ParsingError.JSONParseError,"Expected a parse error but got \(error)")
             expectation.fulfill()
-        })
+        }),"Did not expect an exception but got one")
+        
         self.wait(for: [expectation], timeout: 1.0)
     }
     
@@ -73,7 +75,7 @@ extension MovieSearchViewModelTests {
     
     func testSelectedCellData() {
         self.movieSearchViewModel.movies = MockMovieService().getMovies()
-        let movie = self.movieSearchViewModel.getMovieForSelectedCell(row: 2)
+        let movie = self.movieSearchViewModel.getMovieForSelectedCell(indexPath: IndexPath(row: 2, section: 0))
         XCTAssertEqual(movie?.title,"Test2Title")
     }
     

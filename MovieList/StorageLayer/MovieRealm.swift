@@ -14,4 +14,8 @@ class MovieRealm : Object {
     @objc dynamic var posterPath: String = ""
     @objc dynamic var title: String = ""
     @objc dynamic var overView: String = ""
+    
+    override class func primaryKey() -> String? {
+        return "id"
+    }
 }

@@ -9,6 +9,7 @@
 import Foundation
 import UIKit
 
+//Protocol that represents the data needed for collectionview
 protocol CollectionViewModelProtocol {
     //method that tells the number of sections
     func numberOfSections() -> Int
@@ -21,8 +22,10 @@ protocol CollectionViewModelProtocol {
     
 }
 
+//protocol that represents movie specific details for the cell
+
 protocol MovieCollectionViewModelProtocol : CollectionViewModelProtocol {
     associatedtype Movie
     //method to get the movie for the cell
-    func getMovieForSelectedCell(row:Int) -> Movie?
+    func getMovieForSelectedCell(indexPath:IndexPath) -> Movie?
 }

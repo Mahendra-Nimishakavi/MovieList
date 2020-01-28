@@ -8,43 +8,24 @@
 
 import Foundation
 import UIKit
+
+//View Model responsible for handling Movie Details UI
 class MovieDetailsViewModel {
     private var movie:Movie
     
-    init(movie : Movie){
+    let dataStore : MovieDataStorageProtocol
+    
+    init(movie : Movie,dataStore:MovieDataStorageProtocol){
         self.movie = movie
+        self.dataStore  = MovieDataStore()
     }
     
     func getPosterImage(completion : @escaping (UIImage?)->Void) {
         
-        let image = MovieDataStore.sharedInstance.getMovieThumbNail(movie: self.movie)
-//        guard let imageData = try? Data(contentsOf: (URL(string: self.movie.posterPath) ?? nil)!)
-//            else {
-//                completion(nil)
-//                return
-//            }
-//
-//        if let image = UIImage(data: imageData) {
-//          completion(image)
-//        }
-//        else{
-//            completion(nil)
-//        }
+        let image = self.dataStore.getMovieThumbNail(movie: self.movie)
         completion(image)
         return
         
-    }
-    
-    private func downloadPoster(completion:@escaping (UIImage?)->Void){
-        
-//        func onMovieDownload(image:UIImage?){
-//            if image != nil && !DataController.sharedInstance.saveMoviePosterImage(movie: self.movie, downloadedImage: image!){
-//                print("Unable to save poster image")
-//            }
-//            completion(image)
-//        }
-//
-//        MovieHelper().downloadPosterImage(movie: self.movie, completion: onMovieDownload)
     }
     
     func getMovieTitle()->String?{
@@ -55,13 +36,21 @@ class MovieDetailsViewModel {
         return self.movie.overView
     }
     
+}
+
+//saving movie
+extension MovieDetailsViewModel {
+    
     func saveMovie()->Bool{
-        try? MovieDataStore.sharedInstance.addMovieToFavorites(movie: self.movie)
-        return false//return DataController.sharedInstance.addMovieToWatchList(movie: self.movie)
+        do {
+            let saveResult = try dataStore.addMovieToFavorites(movie: self.movie)
+            return saveResult
+        }catch {
+            return false
+        }
     }
     
-    func canShowSaveMovie()->Bool{
-        return true
-        //return !self.movie.isMovieSaved()
+    func canShowSaveMovieButton()->Bool{
+        return !dataStore.isMovieInFavorites(movie: self.movie)
     }
 }
